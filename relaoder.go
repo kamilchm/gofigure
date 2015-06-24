@@ -1,7 +1,6 @@
 package gofigure
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -50,11 +49,11 @@ func (m *SignalMonitor) Monitor(r Reloader) {
 
 			select {
 			case sig := <-sigch:
-				log.Printf("Received signal %v", sig)
+				log.Info("Received reload signal %v", sig)
 				// call the reloader to reload its configs
 				r.Reload()
 			case <-m.stopch:
-				log.Printf("Stopping reload listener")
+				log.Info("Stopping reload listener")
 				break
 			}
 		}
@@ -66,5 +65,5 @@ func (m *SignalMonitor) Monitor(r Reloader) {
 // Stop stops the signal monitor
 func (m *SignalMonitor) Stop() {
 	m.stopch <- true
-	log.Printf("Stopped signal monitor")
+	log.Info("Stopped signal monitor")
 }

@@ -9,12 +9,15 @@ package gofigure
 import (
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/EverythingMe/gofigure/yaml"
+	"github.com/op/go-logging"
 )
+
+// go-logging gives control over log output to gofigure clients
+var log = logging.MustGetLogger("gofigure")
 
 // DefaultDecoder is a yaml based decoder that can be used for convenience
 var DefaultLoader = NewLoader(yaml.Decoder{}, true)
@@ -63,7 +66,7 @@ func (l Loader) LoadRecursive(config interface{}, paths ...string) error {
 
 			err := l.LoadFile(config, path)
 			if err != nil {
-				log.Printf("Error loading %s: %s", path, err)
+				log.Info("Error loading %s: %s", path, err)
 				if l.StrictMode {
 					return err
 				}
@@ -80,11 +83,11 @@ func (l Loader) LoadRecursive(config interface{}, paths ...string) error {
 // error if the file could not be opened or properly decoded
 func (l Loader) LoadFile(config interface{}, path string) error {
 
-	log.Println("Reading config file", path)
+	log.Debug("Reading config file %s", path)
 	fp, err := os.Open(path)
 
 	if err != nil {
-		log.Printf("Error opening file %s: %s", path, err)
+		log.Info("Error opening file %s: %s", path, err)
 		if l.StrictMode {
 			return err
 		}
@@ -93,7 +96,7 @@ func (l Loader) LoadFile(config interface{}, path string) error {
 
 	err = l.decoder.Decode(fp, config)
 	if err != nil {
-		log.Printf("Error decodeing file %s: %s", path, err)
+		log.Info("Error decodeing file %s: %s", path, err)
 		if l.StrictMode {
 			return err
 		}
@@ -108,7 +111,7 @@ func walkDir(path string, ch chan string, cancelc <-chan struct{}) {
 	files, err := ioutil.ReadDir(path)
 
 	if err != nil {
-		log.Printf("Could not read path %s: %s", path, err)
+		log.Error("Could not read path %s: %s", path, err)
 		return
 	}
 
@@ -123,7 +126,7 @@ func walkDir(path string, ch chan string, cancelc <-chan struct{}) {
 		case ch <- fullpath:
 
 		case <-cancelc:
-			log.Printf("Read canceled")
+			log.Debug("Read canceled")
 			return
 		}
 
